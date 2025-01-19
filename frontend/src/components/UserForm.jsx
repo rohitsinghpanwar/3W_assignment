@@ -24,7 +24,7 @@ function UserForm() {
     Array.from(formData.images).forEach((file) => data.append("images", file));
 
     try {
-      await axios.post("http://localhost:3000/upload", data);
+      await axios.post("https://3-w-assignment-five.vercel.app/upload", data);
       alert("Form submitted successfully!");
     } catch {
       alert("Failed to submit form.");
