@@ -8,7 +8,13 @@ const User = require("./models/User");
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: "https://3-w-assignment-frontend-beta.vercel.app/", credentials: true }));
+app.use(
+  cors({
+    origin: "https://3-w-assignment-frontend-beta.vercel.app", // Frontend URL
+    methods: "GET,POST", // Allowed HTTP methods
+    credentials: true, // If you need to send cookies
+  })
+);
 app.use(express.json());
 app.use(express.static("uploads"));
 
