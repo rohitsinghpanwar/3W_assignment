@@ -8,17 +8,17 @@ const User = require("./models/User");
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "https://3-w-assignment-frontend-beta.vercel.app/", credentials: true }));
 app.use(express.json());
-app.use(express.static("uploads")); // Serve uploaded files
+app.use(express.static("uploads"));
 
-// Connect to MongoDB Atlas
+// MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 
-// File Upload Configuration
+// File Upload Configuration (Update if using Cloud Storage)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -30,20 +30,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Routes
-
-// POST: Submit Form Data
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
     const { name, socialMediaHandle } = req.body;
     const imagePaths = req.files.map((file) => file.filename);
 
-    const user = new User({
-      name,
-      socialMediaHandle,
-      images: imagePaths,
-    });
-
+    const user = new User({ name, socialMediaHandle, images: imagePaths });
     await user.save();
+
     res.status(200).send("Form submitted successfully!");
   } catch (error) {
     console.error("Error saving user:", error);
@@ -51,7 +45,6 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
   }
 });
 
-// GET: Fetch All Form Data
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
@@ -61,18 +54,16 @@ app.get("/users", async (req, res) => {
     res.status(500).send("Failed to fetch users.");
   }
 });
-// Admin Login
+
 app.post("/admin/login", (req, res) => {
-    const { username, password } = req.body;
-  
-    // Load admin credentials from .env
-    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-      return res.json({ success: true });
-    }
-    res.json({ success: false });
-  });
-  
+  const { username, password } = req.body;
+
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    return res.json({ success: true });
+  }
+  res.json({ success: false });
+});
 
 // Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
