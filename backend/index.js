@@ -8,6 +8,8 @@ const User = require("./models/User");
 dotenv.config();
 
 const app = express();
+
+// Allow CORS for frontend domain
 app.use(
   cors({
     origin: "https://3-w-assignment-frontend-beta.vercel.app", // Frontend URL
@@ -15,8 +17,9 @@ app.use(
     credentials: true, // If you need to send cookies
   })
 );
+
 app.use(express.json());
-app.use(express.static("uploads"));
+app.use(express.static("uploads")); // Serve files from 'uploads' directory
 
 // MongoDB Connection
 mongoose
@@ -24,18 +27,24 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 
-// File Upload Configuration (Update if using Cloud Storage)
+// File Upload Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, "uploads/"); // Save uploaded files in 'uploads' folder
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+    cb(null, Date.now() + "-" + file.originalname); // Unique filename
   },
 });
 const upload = multer({ storage });
 
 // Routes
+// Root Route
+app.get("/", (req, res) => {
+  res.send("Backend is up and running!");
+});
+
+// Handle Form Submission with File Uploads
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
     const { name, socialMediaHandle } = req.body;
@@ -51,6 +60,7 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
   }
 });
 
+// Get Users
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
@@ -61,6 +71,7 @@ app.get("/users", async (req, res) => {
   }
 });
 
+// Admin Login
 app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -73,3 +84,4 @@ app.post("/admin/login", (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+
