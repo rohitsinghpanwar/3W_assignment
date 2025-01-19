@@ -9,7 +9,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("https://3-w-assignment-five.vercel.app/users");
+        const res = await axios.get("https://3-w-assignment-backend-one.vercel.app/users");
         setUsers(res.data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 font-semibold text-lg">{user.socialMediaHandle}</td>
                   <td className="px-6 py-4">
                     <img
-                      src={`https://3-w-assignment-five.vercel.app/${user.images[0]}`}
+                      src={`https://3-w-assignment-backend-one.vercel.app/${user.images[0]}`}
                       alt="Uploaded"
                       className="w-40 h-40 object-cover mx-auto rounded-lg shadow-md"
                     />
@@ -66,7 +66,7 @@ const AdminDashboard = () => {
                           {user.images.map((image, index) => (
                             <img
                               key={index}
-                              src={`https://3-w-assignment-five.vercel.app/${image}`}
+                              src={`https://3-w-assignment-backend-one.vercel.app/${image}`}
                               alt={`Uploaded ${index + 1}`}
                               className="w-full h-32 object-cover rounded-lg shadow-md"
                             />
