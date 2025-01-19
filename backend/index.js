@@ -19,7 +19,6 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.static("uploads")); // Serve files from 'uploads' directory
 
 // MongoDB Connection
 mongoose
@@ -27,15 +26,8 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 
-// File Upload Configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Save uploaded files in 'uploads' folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname); // Unique filename
-  },
-});
+// File Upload Configuration (using memory storage)
+const storage = multer.memoryStorage(); // Store files in memory
 const upload = multer({ storage });
 
 // Routes
@@ -48,9 +40,19 @@ app.get("/", (req, res) => {
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
     const { name, socialMediaHandle } = req.body;
-    const imagePaths = req.files.map((file) => file.filename);
 
-    const user = new User({ name, socialMediaHandle, images: imagePaths });
+    // Convert uploaded files to base64 strings
+    const imageBuffers = req.files.map((file) => ({
+      filename: file.originalname,
+      buffer: file.buffer.toString("base64"), // Store buffer as base64 string
+    }));
+
+    // Save user with image buffers (or filenames) in MongoDB
+    const user = new User({
+      name,
+      socialMediaHandle,
+      images: imageBuffers, // Store buffer or file name
+    });
     await user.save();
 
     res.status(200).send("Form submitted successfully!");
@@ -64,6 +66,15 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
+
+    // If you need to send base64 data to frontend
+    users.forEach((user) => {
+      user.images = user.images.map((image) => ({
+        ...image,
+        base64: image.buffer, // Send base64 string to frontend
+      }));
+    });
+
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -84,4 +95,3 @@ app.post("/admin/login", (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-
