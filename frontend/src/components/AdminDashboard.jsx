@@ -4,6 +4,7 @@ import axios from "axios";
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [showImages, setShowImages] = useState({});
+  const [loading, setLoading] = useState(true); // Added loading state
 
   // Fetch users data
   useEffect(() => {
@@ -13,6 +14,8 @@ const AdminDashboard = () => {
         setUsers(res.data);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // Set loading to false once data is fetched or an error occurs
       }
     };
 
@@ -30,8 +33,10 @@ const AdminDashboard = () => {
     <div className="flex flex-col items-center text-center p-6 bg-gray-100 min-h-screen">
       <h2 className="font-bold text-3xl mb-6 text-indigo-700">Admin Dashboard</h2>
       <div className="border border-gray-600 rounded-lg p-6 bg-white shadow-lg w-full max-w-4xl">
-        {users.length === 0 ? (
-          <p>No data available.</p>
+        {loading ? (
+          <p>Loading...</p> // Show loading message when data is being fetched
+        ) : users.length === 0 ? (
+          <p>No data available.</p> // Show "No data available" when no users data
         ) : (
           <table className="table-auto w-full text-gray-700">
             <thead className="bg-gray-200">
