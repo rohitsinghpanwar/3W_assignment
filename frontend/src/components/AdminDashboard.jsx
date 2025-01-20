@@ -47,33 +47,38 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 font-semibold text-lg">{user.name}</td>
                   <td className="px-6 py-4 font-semibold text-lg">{user.socialMediaHandle}</td>
                   <td className="px-6 py-4">
-                    <img
-                      src={`https://3-w-assignment-backend-one.vercel.app/${user.images[0]}`}
-                      alt="Uploaded"
-                      className="w-40 h-40 object-cover mx-auto rounded-lg shadow-md"
-                    />
-                    {user.images.length > 1 && (
-                      <button
-                        onClick={() => handleShowImages(user._id)}
-                        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
-                      >
-                        {showImages[user._id] ? "Hide Images" : "Show All Images"}
-                      </button>
+                    {user.images.length > 0 && (
+                      <>
+                        <img
+                          src={user.images[0]} // Cloudinary URL
+                          alt="Uploaded"
+                          className="w-40 h-40 object-cover mx-auto rounded-lg shadow-md"
+                        />
+                        {user.images.length > 1 && (
+                          <button
+                            onClick={() => handleShowImages(user._id)}
+                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                          >
+                            {showImages[user._id] ? "Hide Images" : "Show All Images"}
+                          </button>
+                        )}
+                        {showImages[user._id] && (
+                          <div className="mt-4 bg-gray-100 p-4 rounded-lg border border-gray-300">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                              {user.images.map((image, index) => (
+                                <img
+                                  key={index}
+                                  src={image} // Cloudinary URL
+                                  alt={`Uploaded ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg shadow-md"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
-                    {showImages[user._id] && (
-                      <div className="mt-4 bg-gray-100 p-4 rounded-lg border border-gray-300">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                          {user.images.map((image, index) => (
-                            <img
-                              key={index}
-                              src={`https://3-w-assignment-backend-one.vercel.app/${image}`}
-                              alt={`Uploaded ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg shadow-md"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {user.images.length === 0 && <p>No images uploaded.</p>}
                   </td>
                 </tr>
               ))}
