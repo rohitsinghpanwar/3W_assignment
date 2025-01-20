@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const cloudinary = require("cloudinary").v2;
 const User = require("./models/User");
 
 dotenv.config();
@@ -26,6 +27,13 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Replace with your Cloudinary cloud name
+  api_key: process.env.CLOUDINARY_API_KEY, // Replace with your Cloudinary API key
+  api_secret: process.env.CLOUDINARY_API_SECRET, // Replace with your Cloudinary API secret
+});
+
 // File Upload Configuration (using memory storage)
 const storage = multer.memoryStorage(); // Store files in memory
 const upload = multer({ storage });
@@ -41,23 +49,32 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
     const { name, socialMediaHandle } = req.body;
 
-    // Convert uploaded files to base64 strings
-    const imageBuffers = req.files.map((file) => ({
-      filename: file.originalname,
-      buffer: file.buffer.toString("base64"), // Store buffer as base64 string
-    }));
+    // Upload images to Cloudinary
+    const imageUploadPromises = req.files.map((file) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "uploads" }, // Replace with your desired folder name
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url); // Get the secure URL of the uploaded image
+          }
+        ).end(file.buffer);
+      });
+    });
 
-    // Save user with image buffers (or filenames) in MongoDB
+    const imagePaths = await Promise.all(imageUploadPromises);
+
+    // Save user with image URLs in MongoDB
     const user = new User({
       name,
       socialMediaHandle,
-      images: imageBuffers, // Store buffer or file name
+      images: imagePaths, // Store Cloudinary URLs in the database
     });
     await user.save();
 
     res.status(200).send("Form submitted successfully!");
   } catch (error) {
-    console.error("Error saving user:", error);
+    console.error("Error uploading files to Cloudinary:", error);
     res.status(500).send("Failed to submit form.");
   }
 });
@@ -66,15 +83,6 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
-
-    // If you need to send base64 data to frontend
-    users.forEach((user) => {
-      user.images = user.images.map((image) => ({
-        ...image,
-        base64: image.buffer, // Send base64 string to frontend
-      }));
-    });
-
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
