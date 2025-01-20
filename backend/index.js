@@ -29,22 +29,21 @@ mongoose
 
 // Cloudinary Configuration
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Replace with your Cloudinary cloud name
-  api_key: process.env.CLOUDINARY_API_KEY, // Replace with your Cloudinary API key
-  api_secret: process.env.CLOUDINARY_API_SECRET, // Replace with your Cloudinary API secret
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// File Upload Configuration (using memory storage)
+// File Upload Configuration
 const storage = multer.memoryStorage(); // Store files in memory
 const upload = multer({ storage });
 
-// Routes
 // Root Route
 app.get("/", (req, res) => {
   res.send("Backend is up and running!");
 });
 
-// Handle Form Submission with File Uploads
+// Image Upload Route
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
     const { name, socialMediaHandle } = req.body;
@@ -72,25 +71,25 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
     });
     await user.save();
 
-    res.status(200).send("Form submitted successfully!");
+    res.status(200).json({ message: "Form submitted successfully!", images: imagePaths });
   } catch (error) {
     console.error("Error uploading files to Cloudinary:", error);
-    res.status(500).send("Failed to submit form.");
+    res.status(500).json({ error: "Failed to submit form." });
   }
 });
 
-// Get Users
+// Get Users Route
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).send("Failed to fetch users.");
+    res.status(500).json({ error: "Failed to fetch users." });
   }
 });
 
-// Admin Login
+// Admin Login Route
 app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -102,4 +101,4 @@ app.post("/admin/login", (req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
